@@ -4,25 +4,18 @@ A distributed asynchronous job processing system built with FastAPI and Redis St
 
 This system focuses on production failure modes—duplicate delivery, worker crashes, partial execution, and retry storms—and implements coordination primitives to handle them safely.
 
-## Architecture Overview
+## Architecture
 
 The system is composed of multiple FastAPI services coordinated through Redis Streams, with PostgreSQL used for service-level persistence.
-```
-Clients / Gateway
-        │
-        ▼
-FastAPI Services (Workers + API Layer)
-        │
-        ▼
-Redis Streams (Job Transport Layer)
-(XADD / XREADGROUP consumer groups)
-        │
-        ▼
-Worker Execution Layer
-        │
-        ├── Idempotency Store (Redis)
-        ├── State Store (PostgreSQL)
-        └── DLQ Streams (failure routing)
+
+```mermaid
+graph TD;
+    Clients["Clients / Gateway"] --> API["FastAPI Services (Workers + API Layer)"];
+    API --> Streams["Redis Streams (Job Transport Layer)<br>(XADD / XREADGROUP consumer groups)"];
+    Streams --> Worker["Worker Execution Layer"];
+    Worker --> Idempotency["Idempotency Store (Redis)"];
+    Worker --> Postgres["State Store (PostgreSQL)"];
+    Worker --> DLQ["DLQ Streams (failure routing)"];
 ```
 ## Core Components
 - Queueing System: Redis Streams (consumer groups for distributed workers)
